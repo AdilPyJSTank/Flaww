@@ -1,0 +1,176 @@
+// flaww — single-user schema.
+//
+// Postgres rather than SQLite because Cloud Run's filesystem is ephemeral and
+// instances come and go. Neon's free tier is more than enough for this volume
+// (a few hundred rows a day); Cloud SQL works identically if you'd rather keep
+// everything inside GCP.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Everything ingested, whether or not it survived screening.
+/// Rejected rows are kept — they are the negative half of your training set.
+model Post {
+  id         String @id @default(cuid())
+  platform   String // reddit | threads | x | linkedin
+  externalId String
+  url        String
+
+  subreddit  String? // reddit
+  matchedTag String? // x: the tracked tag; threads: the keyword; linkedin: parent post urn
+
+  authorHandle     String
+  authorExternalId String?
+  authorKarma      Int?
+  authorFollowers  Int?
+
+  title         String?
+  body          String  @db.Text
+  parentContext String? @db.Text
+
+  postedAt   DateTime
+  ingestedAt DateTime @default(now())
+
+  dedupeHash      String
+  matchedKeywords String @default("[]")
+
+  /// ingested | prefiltered_out | screening | rejected | carded
+  /// | expired | replied | published | failed
+  status String @default("ingested")
+
+  raw String @default("") @db.Text
+
+  verdict Verdict?
+  reply   Reply?
+
+  @@unique([platform, externalId])
+  @@index([status, postedAt])
+  @@index([dedupeHash])
+  @@index([platform, authorExternalId, postedAt])
+  @@index([ingestedAt])
+}
+
+/// One row per screening call. Separate from Post so you can re-screen the
+/// backlog against a new model or prompt and diff the two runs.
+model Verdict {
+  id            String   @id @default(cuid())
+  postId        String   @unique
+  isRelevant    Boolean
+  confidence    Float
+  reason        String   @db.Text
+  model         String
+  promptVersion String
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  costUsd       Float    @default(0)
+  latencyMs     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([promptVersion, isRelevant])
+}
+
+/// What you typed, stored byte-for-byte as you typed it.
+///
+/// This table is the point of the whole project. Nothing rewrites `text`,
+/// nothing normalises it, nothing summarises it. Every row is one labelled
+/// example of how you answer a specific kind of post. When there are a few
+/// hundred of them, that corpus is what makes drafting possible — and it is
+/// the one asset here nobody else can reproduce.
+model Reply {
+  id     String @id @default(cuid())
+  postId String @unique
+
+  text   String @db.Text
+  source String @default("manual") // manual now; "assisted"/"auto" later
+
+  /// pending | publishing | published | cancelled | failed | reconcile
+  /// "reconcile" means the publish outcome was ambiguous (timeout / 5xx) and
+  /// flaww refused to retry rather than risk double-posting.
+  status String @default("pending")
+
+  scheduledFor   DateTime
+  idempotencyKey String   @unique
+
+  platformReplyId String?
+  platformUrl     String?
+  error           String? @db.Text
+
+  /// Estimated marginal cost of this reply, where the platform charges for it
+  /// (X). Zero everywhere else.
+  costUsd Float @default(0)
+
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+
+  score        Int?
+  scoredAt     DateTime?
+  stillVisible Boolean?
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledFor])
+  @@index([status, publishedAt])
+}
+
+/// Maps the Telegram message you're replying to back to the post it was about.
+/// This is what makes the buttonless flow work: reply to the card, done.
+model Card {
+  id                String    @id @default(cuid())
+  postId            String    @unique
+  telegramMessageId Int       @unique
+  sentAt            DateTime  @default(now())
+  expiresAt         DateTime
+  answeredAt        DateTime?
+
+  @@index([expiresAt, answeredAt])
+  @@index([sentAt])
+}
+
+/// Per-source polling position. Cursor-based so a poll only ever asks for
+/// what it has not already seen. Also used as a small key/value store for
+/// rotated tokens and the pause flag.
+model PollCursor {
+  id                  String    @id
+  lastSeenId          String?   @db.Text
+  lastPolledAt        DateTime?
+  consecutiveFailures Int       @default(0)
+  pausedUntil         DateTime?
+}
+
+/// Rolling API/spend counters, keyed by window:
+///   "reddit:hour:2026-08-10T14" | "x_tweets:month:2026-08" | "llm:day:2026-08-10"
+model Budget {
+  id        String   @id
+  used      Int      @default(0)
+  costUsd   Float    @default(0)
+  notified  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+/// Last time you replied to a given person, so flaww never pesters anyone.
+model AuthorCooldown {
+  id            String   @id
+  handle        String
+  lastRepliedAt DateTime
+}
+
+/// Cross-instance mutex.
+///
+/// Cloud Run can run more than one instance during a revision rollover, and
+/// Cloud Scheduler retries on timeout. Without this, two overlapping poll
+/// cycles would double-read (and on X, double-bill).
+model Lock {
+  id        String   @id
+  holder    String
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}

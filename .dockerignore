@@ -1,0 +1,11 @@
+node_modules
+.git
+.env
+*.db
+*.db-*
+data
+dist
+corpus-export-*.jsonl
+README.md
+deploy
+.github
