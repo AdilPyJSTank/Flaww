@@ -38,7 +38,7 @@ Second sentence: the mechanism — how it actually works.`,
 
   // ── Reddit ──────────────────────────────────────── free, 100 req/min ──
   reddit: {
-    enabled: true,
+    enabled: false,
 
     subreddits: ['devops', 'startups', 'SaaS', 'cybersecurity', 'ExperiencedDevs'],
 
@@ -62,7 +62,7 @@ Second sentence: the mechanism — how it actually works.`,
     // TOP is ranked and quieter; RECENT is chronological and noisier.
     searchType: 'RECENT',
 
-    pollMinutes: 20,
+    pollMinutes: 60,
     fetchLimit: 25,
     maxAgeHours: 24,
   },
