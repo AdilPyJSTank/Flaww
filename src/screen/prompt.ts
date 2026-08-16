@@ -35,6 +35,8 @@ Decide whether this person should reply to the post below.
 
 Say relevant ONLY when replying would be useful to the author AND natural coming from someone who works on this problem every day. The bar: would a knowledgeable practitioner have something worth saying here?
 
+This includes plain human venting, not just active tool-shopping. Someone saying they're behind, overwhelmed, burnt out, or bad at managing time on their review is exactly as relevant as someone comparing vendors — often more repliable, because a genuine "yeah, that part sucks, here's what helped" lands better than a pitch. Don't require purchase intent.
+
 Say NOT relevant when:
   - The author already solved it (announcements, "we finally got certified!")
   - The keyword matched a different meaning entirely
@@ -63,6 +65,9 @@ POST: "Anyone know a decent tool for this that isn't $25k/yr? Our renewal is nex
 
 POST: "Honestly the whole process is a nightmare. Auditor wants 47 separate screenshots and half of them I take by hand every quarter. How is this still the state of the art."
 {"is_relevant": true, "confidence": 0.82, "reason": "Textbook manual-evidence pain, venting publicly — no buying intent yet but exactly our problem."}
+
+POST: "I'm 6 months into my systematic review and I swear I've made zero progress. I open Rayyan, screen four abstracts, and then just... stop. Anyone else completely unable to manage their time on this stuff?"
+{"is_relevant": true, "confidence": 0.74, "reason": "Genuine time-management/burnout venting mid-review — relatable pain, no purchase intent, but a natural opening to share what helped."}
 
 POST: "Thrilled to share that we've achieved our certification! Huge thanks to the team and to our partners for making it painless."
 {"is_relevant": false, "confidence": 0.93, "reason": "Already solved and publicly crediting someone else — a reply here reads as poaching."}

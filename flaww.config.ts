@@ -13,20 +13,26 @@ const config: FlawwConfig = {
   // write it like you'd brief a new contractor — concrete, not aspirational.
   // ───────────────────────────────────────────────────────────────────────
   persona: {
-    company: 'Flaww',
-    product: `One-sentence description of what you sell and who it's for.
-Second sentence: the mechanism — how it actually works.`,
+    company: 'PicoFlow',
+    product: `AI-powered systematic review assistant for researchers writing conference abstracts and meta-analyses.
+It takes a clinical/research question through PICO framing, PubMed search-string generation, abstract + full-text screening (with PRISMA), data extraction, and meta-analysis (forest plots, I², Egger's test), ending in a submission-ready abstract — at picoflow.io, built by the person running this repo (C:\\Users\\user\\Picoflow).`,
 
-    icp: 'Series A-B B2B SaaS, 20-300 employees. Buyer is the CTO or first security hire.',
+    icp: 'Academic/clinical researchers, PhD students, and residents running a systematic review or meta-analysis, usually racing a conference or journal submission deadline.',
 
     painPoints: [
-      'manual evidence collection',
-      'audit deadline forced by a customer deal',
-      'incumbent pricing frustration',
-      'engineering time consumed by compliance',
+      'manually screening hundreds of PubMed abstracts',
+      'building PRISMA flow diagrams by hand',
+      'running meta-analysis stats (forest plots, heterogeneity, subgroup analysis) without a stats background',
+      'conference abstract deadline with an unfinished review',
+      'PICO framing / search-string construction for a vague research question',
+      'losing track of time and falling behind on the review while juggling coursework/clinic',
+      'feeling buried under hundreds of papers with no system for getting through them',
+      'procrastinating on screening because it is tedious and never-ending',
+      'burnout / overwhelm from a review dragging on far longer than planned',
+      'imposter syndrome about doing a systematic review or meta-analysis "right"',
     ],
 
-    competitors: ['Vanta', 'Drata', 'Secureframe'],
+    competitors: ['Covidence', 'Rayyan', 'DistillerSR', 'Nested Knowledge'],
 
     // Runs before the LLM, costs nothing, kills the most common false positives.
     negativeTerms: ['hiring', 'we are hiring', 'job posting', 'giveaway', 'promo code'],
@@ -40,9 +46,23 @@ Second sentence: the mechanism — how it actually works.`,
   reddit: {
     enabled: false,
 
-    subreddits: ['devops', 'startups', 'SaaS', 'cybersecurity', 'ExperiencedDevs'],
+    subreddits: ['AskAcademia', 'PhD', 'epidemiology', 'medicine', 'biostatistics'],
 
-    keywords: ['soc 2', 'soc2', 'iso 27001', 'compliance', 'audit', 'vanta', 'drata'],
+    keywords: [
+      'systematic review',
+      'meta-analysis',
+      'PRISMA',
+      'PICO',
+      'abstract screening',
+      'covidence',
+      'rayyan',
+      'so behind on my literature review',
+      'phd time management',
+      'phd burnout',
+      'drowning in papers',
+      'can\'t manage my time as a phd',
+      'behind on my research',
+    ],
 
     pollMinutes: 12,
     fetchLimit: 25,
@@ -57,7 +77,17 @@ Second sentence: the mechanism — how it actually works.`,
   threads: {
     enabled: true,
 
-    keywords: ['soc 2', 'soc2 compliance', 'iso 27001', 'vanta', 'security audit'],
+    keywords: [
+      'systematic review',
+      'meta-analysis',
+      'PRISMA diagram',
+      'covidence alternative',
+      'rayyan alternative',
+      'phd time management',
+      'phd burnout',
+      'behind on my research',
+      'drowning in papers',
+    ],
 
     // TOP is ranked and quieter; RECENT is chronological and noisier.
     searchType: 'RECENT',
@@ -73,8 +103,8 @@ Second sentence: the mechanism — how it actually works.`,
   x: {
     enabled: false, // flip on when you're ready to spend
 
-    tags: ['#soc2', '#compliance', '#infosec', '#devsecops'],
-    phrases: ['soc 2 audit', 'vanta alternative'],
+    tags: ['#systematicreview', '#metaanalysis', '#prisma', '#phdlife', '#epitwitter'],
+    phrases: ['systematic review', 'covidence alternative', 'rayyan alternative'],
 
     pollMinutes: 45,
 

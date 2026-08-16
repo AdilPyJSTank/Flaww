@@ -15,6 +15,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "doctor": "tsx src/scripts/doctor.ts",
+    "threads:reset-auth": "tsx src/scripts/reset-threads-auth.ts",
     "corpus:export": "tsx src/scripts/export-corpus.ts",
     "corpus:stats": "tsx src/scripts/corpus-stats.ts",
     "poll": "tsx src/scripts/run-once.ts poll",
